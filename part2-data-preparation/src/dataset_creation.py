@@ -135,6 +135,47 @@ WHERE rn = 2;""",
             difficulty="expert"
         )
     
+    def load_huggingface_dataset(self, dataset_name: str = "b-mc2/sql-create-context", 
+                               num_examples: int = 1000):
+        """Load dataset from HuggingFace Hub"""
+        try:
+            from datasets import load_dataset
+        except ImportError:
+            print("❌ Error: datasets library not found. Install with: pip install datasets")
+            return False
+        
+        print(f"🔄 Loading {num_examples} examples from {dataset_name}...")
+        
+        try:
+            # Load dataset with specified number of examples
+            dataset = load_dataset(dataset_name, split=f"train[:{num_examples}]")
+            
+            # Convert HuggingFace format to internal format
+            for i, item in enumerate(dataset):
+                # Handle different possible field names
+                instruction = item.get('question', item.get('instruction', ''))
+                context = item.get('context', item.get('input', ''))
+                answer = item.get('answer', item.get('output', ''))
+                
+                if instruction and answer:
+                    self.add_example(
+                        instruction=instruction,
+                        table_schema=context,
+                        sql_query=answer,
+                        difficulty="medium"
+                    )
+                    
+                    if (i + 1) % 100 == 0:
+                        print(f"  Loaded {i + 1}/{num_examples} examples...")
+            
+            print(f"✅ Successfully loaded {len(self.examples)} examples from {dataset_name}")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Error loading dataset: {e}")
+            print("💡 Falling back to manual dataset creation...")
+            return False
+    
     def format_for_training(self, format_type: str = "alpaca") -> List[Dict]:
         """Format examples for different training approaches"""
         
@@ -241,15 +282,34 @@ def main():
     parser.add_argument("--output-dir", default="./data/datasets", help="Output directory for datasets")
     parser.add_argument("--format", choices=["alpaca", "chat", "completion"], default="alpaca", help="Dataset format")
     parser.add_argument("--dataset-type", choices=["sql", "code", "support"], default="sql", help="Type of dataset to create")
+    parser.add_argument("--source", choices=["manual", "huggingface"], default="manual", help="Dataset source")
+    parser.add_argument("--hf-dataset", default="b-mc2/sql-create-context", help="HuggingFace dataset name")
+    parser.add_argument("--num-examples", type=int, default=1000, help="Number of examples to load from HuggingFace")
     
     args = parser.parse_args()
     
     print(f"🚀 Creating {args.dataset_type} dataset in {args.format} format")
     print(f"Output directory: {args.output_dir}")
+    print(f"Source: {args.source}")
     
     if args.dataset_type == "sql":
-        dataset_path = create_sql_dataset(args.output_dir, args.format)
-        print(f"✅ SQL dataset created: {dataset_path}")
+        if args.source == "huggingface":
+            # Create dataset using HuggingFace
+            creator = SQLDatasetCreator(output_dir=args.output_dir)
+            success = creator.load_huggingface_dataset(args.hf_dataset, args.num_examples)
+            
+            if success:
+                dataset_path = creator.save_dataset("sql_dataset_hf", args.format)
+                print(f"✅ HuggingFace SQL dataset created: {dataset_path}")
+                print(f"📊 Total examples: {len(creator.examples)}")
+            else:
+                print("⚠️  HuggingFace dataset loading failed, creating manual dataset...")
+                dataset_path = create_sql_dataset(args.output_dir, args.format)
+                print(f"✅ Manual SQL dataset created: {dataset_path}")
+        else:
+            # Create manual dataset (original behavior)
+            dataset_path = create_sql_dataset(args.output_dir, args.format)
+            print(f"✅ Manual SQL dataset created: {dataset_path}")
     else:
         print(f"❌ Dataset type '{args.dataset_type}' not implemented yet")
         return 1

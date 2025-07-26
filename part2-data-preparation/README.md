@@ -12,15 +12,31 @@ This directory contains comprehensive tools for creating, validating, and optimi
 
 ## 🚀 Quick Start
 
+### Option A: Use Public Dataset (Recommended for Desktop)
 ```bash
-# Create a SQL generation dataset
-python src/dataset_creation.py --output-dir ../data/datasets --format alpaca
+# Load 1K examples for fast training (30min-1hr)
+python src/dataset_creation.py --source huggingface --num-examples 1000 --format alpaca
 
+# Load 5K examples for comprehensive training (1-2hr)  
+python src/dataset_creation.py --source huggingface --num-examples 5000 --format alpaca
+
+# Use different HuggingFace dataset
+python src/dataset_creation.py --source huggingface --hf-dataset "spider" --num-examples 500
+```
+
+### Option B: Create Manual Dataset (Original Tutorial)
+```bash
+# Create a SQL generation dataset manually
+python src/dataset_creation.py --source manual --format alpaca
+```
+
+### Validation and Conversion
+```bash
 # Validate dataset quality
-python src/data_validation.py --dataset ../data/datasets/sql_dataset_alpaca.json
+python src/data_validation.py --dataset ../data/datasets/sql_dataset_hf_alpaca.json
 
 # Convert formats
-python src/format_converter.py --input sql_dataset_alpaca.json --output sql_dataset_chat.json --from alpaca --to chat
+python src/format_converter.py --input sql_dataset_hf_alpaca.json --output sql_dataset_chat.json --from alpaca --to chat
 
 # Get model recommendations
 python src/model_selection.py --use-case coding --memory-gb 16
@@ -55,7 +71,19 @@ python src/model_selection.py --use-case coding --memory-gb 16
 - Performance vs. memory trade-offs
 - Use case specific suggestions
 
-## 📊 Dataset Quality Metrics
+## 📊 Dataset Options and Recommendations
+
+### Desktop Training Recommendations:
+- **1K examples**: ~30min training, 2-4GB memory, ideal for testing
+- **5K examples**: ~1-2hr training, 4-6GB memory, good balance
+- **10K+ examples**: 3hr+ training, 8GB+ memory, comprehensive but slow
+
+### Available Public Datasets:
+- **b-mc2/sql-create-context**: 78K examples, professionally curated
+- **spider**: 10K examples, complex cross-domain queries  
+- **wikisql**: 80K examples, simpler single-table queries
+
+### Dataset Quality Metrics
 
 The validation framework checks:
 
