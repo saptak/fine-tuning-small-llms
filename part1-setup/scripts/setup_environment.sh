@@ -148,10 +148,31 @@ setup_python() {
     print_status "Python environment setup completed"
 }
 
-# Setup CUDA support (if NVIDIA GPU available)
-setup_cuda() {
-    print_status "Checking for NVIDIA GPU..."
+# Setup GPU support (CUDA for NVIDIA, MPS for Apple Silicon)
+setup_gpu() {
+    print_status "Checking for GPU support..."
     
+    # Check for Apple Silicon Mac
+    if [[ "$OS" == "macOS" && $(uname -m) == "arm64" ]]; then
+        print_status "Apple Silicon Mac detected (M1/M2/M3)"
+        print_status "Will use Metal Performance Shaders (MPS) for GPU acceleration"
+        
+        # Check macOS version for MPS support
+        MACOS_VERSION=$(sw_vers -productVersion)
+        MACOS_MAJOR=$(echo $MACOS_VERSION | cut -d'.' -f1)
+        MACOS_MINOR=$(echo $MACOS_VERSION | cut -d'.' -f2)
+        
+        if [[ $MACOS_MAJOR -gt 12 || ($MACOS_MAJOR -eq 12 && $MACOS_MINOR -ge 3) ]]; then
+            print_status "macOS $MACOS_VERSION supports MPS"
+        else
+            print_warning "macOS $MACOS_VERSION detected. MPS requires macOS 12.3 or later"
+            print_warning "Please update macOS for optimal performance"
+        fi
+        
+        return 0
+    fi
+    
+    # Check for NVIDIA GPU
     if command -v nvidia-smi &> /dev/null; then
         GPU_INFO=$(nvidia-smi --query-gpu=name --format=csv,noheader,nounits | head -1)
         print_status "NVIDIA GPU detected: $GPU_INFO"
@@ -165,7 +186,9 @@ setup_cuda() {
             print_warning "https://developer.nvidia.com/cuda-downloads"
         fi
     else
-        print_warning "No NVIDIA GPU detected. Training will use CPU (slower)"
+        print_warning "No GPU acceleration detected. Training will use CPU (slower)"
+        print_warning "For Apple Silicon Macs: Ensure you have macOS 12.3+ for MPS support"
+        print_warning "For NVIDIA systems: Install appropriate GPU drivers and CUDA"
     fi
 }
 
@@ -246,7 +269,7 @@ datasets>=2.12.0
 accelerate>=0.20.0
 
 # Unsloth for efficient training
-unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git
+unsloth @ git+https://github.com/unslothai/unsloth.git
 
 # Training and Evaluation
 wandb>=0.15.0
@@ -337,7 +360,7 @@ main() {
     check_os
     install_docker
     setup_python
-    setup_cuda
+    setup_gpu
     create_project_structure
     create_config_files
     setup_dev_environment
