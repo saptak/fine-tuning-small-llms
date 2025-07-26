@@ -1,0 +1,72 @@
+# SQL Expert Model Training Configuration
+
+# Model Configuration
+model:
+  name: "unsloth/llama-3.1-8b-instruct-bnb-4bit"
+  max_seq_length: 2048
+  load_in_4bit: true
+
+# LoRA Configuration
+lora:
+  r: 16
+  alpha: 16
+  dropout: 0.1
+  target_modules:
+    - "q_proj"
+    - "k_proj" 
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+# Dataset Configuration
+dataset:
+  type: "json"  # json, huggingface
+  path: "../../data/datasets/sql_dataset_alpaca.json"
+  format: "alpaca"  # alpaca, chat, completion
+  validation_split: 0.1
+
+# Training Configuration
+training:
+  batch_size: 2
+  eval_batch_size: 2
+  gradient_accumulation_steps: 4
+  warmup_steps: 10
+  epochs: 3
+  learning_rate: 2e-4
+  weight_decay: 0.01
+  lr_scheduler: "cosine"
+  logging_steps: 10
+  save_steps: 100
+  eval_steps: 50
+  output_dir: "../../models/sql-expert"
+  save_merged_model: true
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  use_wandb: true
+  run_name: "sql-expert-llama-3.1-8b"
+
+# Wandb Configuration
+wandb:
+  project: "llm-fine-tuning"
+  entity: "your-username"
+  tags:
+    - "sql-generation"
+    - "llama-3.1"
+    - "unsloth"
+    - "lora"
+
+# Model-specific settings
+special_tokens:
+  system_token: "<|start_header_id|>system<|end_header_id|>"
+  user_token: "<|start_header_id|>user<|end_header_id|>"
+  assistant_token: "<|start_header_id|>assistant<|end_header_id|>"
+  eos_token: "<|eot_id|>"
+
+# Optimization settings
+optimization:
+  use_flash_attention: true
+  use_gradient_checkpointing: true
+  dataloader_num_workers: 4
+  max_grad_norm: 1.0
