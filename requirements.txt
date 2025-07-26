@@ -7,7 +7,7 @@ datasets>=2.12.0
 accelerate>=0.20.0
 
 # Unsloth for efficient training
-unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git
+unsloth @ git+https://github.com/unslothai/unsloth.git
 
 # Training and Evaluation
 wandb>=0.15.0
@@ -43,7 +43,6 @@ python-multipart>=0.0.6
 # Security
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
-python-multipart>=0.0.6
 
 # Utilities
 python-dotenv>=1.0.0

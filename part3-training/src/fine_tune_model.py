@@ -80,11 +80,33 @@ class UnslothTrainer:
         def format_example(example):
             """Format example for instruction fine-tuning"""
             
+            model_name = model_config['name'].lower()
+            
             if dataset_config['format'] == 'alpaca':
-                if example.get('input', '').strip():
-                    text = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>You are an expert assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>{example['instruction']}\n\n{example['input']}<|eot_id|><|start_header_id|>assistant<|end_header_id|>{example['output']}<|eot_id|><|end_of_text|>"
+                if 'llama-3' in model_name:
+                    # Llama 3.1 format
+                    if example.get('input', '').strip():
+                        text = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>You are an expert assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>{example['instruction']}\n\n{example['input']}<|eot_id|><|start_header_id|>assistant<|end_header_id|>{example['output']}<|eot_id|><|end_of_text|>"
+                    else:
+                        text = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>You are an expert assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>{example['instruction']}<|eot_id|><|start_header_id|>assistant<|end_header_id|>{example['output']}<|eot_id|><|end_of_text|>"
+                elif 'mistral' in model_name or 'mixtral' in model_name:
+                    # Mistral format
+                    if example.get('input', '').strip():
+                        text = f"<s>[INST] {example['instruction']}\n\n{example['input']} [/INST] {example['output']}</s>"
+                    else:
+                        text = f"<s>[INST] {example['instruction']} [/INST] {example['output']}</s>"
+                elif 'phi-3' in model_name:
+                    # Phi-3 format
+                    if example.get('input', '').strip():
+                        text = f"<|system|>You are an expert assistant.<|end|><|user|>{example['instruction']}\n\n{example['input']}<|end|><|assistant|>{example['output']}<|end|>"
+                    else:
+                        text = f"<|system|>You are an expert assistant.<|end|><|user|>{example['instruction']}<|end|><|assistant|>{example['output']}<|end|>"
                 else:
-                    text = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>You are an expert assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>{example['instruction']}<|eot_id|><|start_header_id|>assistant<|end_header_id|>{example['output']}<|eot_id|><|end_of_text|>"
+                    # Generic Alpaca format (works with most models)
+                    if example.get('input', '').strip():
+                        text = f"### Instruction:\n{example['instruction']}\n\n### Input:\n{example['input']}\n\n### Response:\n{example['output']}"
+                    else:
+                        text = f"### Instruction:\n{example['instruction']}\n\n### Response:\n{example['output']}"
             
             return {"text": text}
         
