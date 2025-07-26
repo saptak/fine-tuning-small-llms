@@ -1,0 +1,109 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+jupyter.pid
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Data and Models
+data/raw/
+data/processed/
+models/checkpoints/
+models/gguf/
+*.gguf
+*.bin
+*.safetensors
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Backup files
+backups/
+*.backup
+*.bak
+
+# Monitoring data
+prometheus_data/
+grafana_data/
+
+# Cache
+.cache/
+.pytest_cache/
+*.cache
+
+# Output files
+system_check_results.json
+validation_report.txt
+
+# Secrets
+*.key
+*.pem
+*.crt
+ssl/
+
+# Training outputs
+wandb/
+outputs/
+results/
+
+# Large files
+*.tar.gz
+*.zip
+*.7z
